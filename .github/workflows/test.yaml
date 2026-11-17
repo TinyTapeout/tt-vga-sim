@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Verilator and ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y verilator ffmpeg
+
+      - uses: astral-sh/setup-uv@v10.3.3
+
+      - name: Run the tests
+        run: uv run --with-requirements requirements.txt python -m unittest discover -s tests -v
+
+      - name: Render the example
+        run: >
+          uv run vga_sim.py examples/hello -n 60 --check-reset
+          --gif frames/hello.gif --video frames/hello.mp4
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frames
+          path: frames/
